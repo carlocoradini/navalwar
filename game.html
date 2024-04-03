@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naval War Game</title>
+    <style>
+        .board {
+            display: inline-block;
+            margin: 10px;
+            border: 1px solid black;
+        }
+
+        .board-row {
+            display: flex;
+        }
+
+        .board-cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid gray;
+            text-align: center;
+            line-height: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Naval War Game</h1>
+
+    <div id="player1">
+        <h2>Tabuleiro de Jogador 1</h2>
+        <div class="board" id="player1Board"></div>
+        <div id="player1Name"></div>
+    </div>
+
+    <div id="player2">
+        <h2>Tabuleiro de Jogador 2</h2>
+        <div class="board" id="player2Board"></div>
+        <div id="player2Name"></div>
+    </div>
+
+    <script>
+        const player1BoardElement = document.getElementById('player1Board');
+        const player2BoardElement = document.getElementById('player2Board');
+        const player1NameElement = document.getElementById('player1Name');
+        const player2NameElement = document.getElementById('player2Name');
+
+        // Função para criar um tabuleiro 10x10
+        function createBoard(boardElement) {
+            const board = document.createElement('div');
+            board.className = 'board';
+
+            for (let i = 0; i < 10; i++) {
+                const row = document.createElement('div');
+                row.className = 'board-row';
+                for (let j = 0; j < 10; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'board-cell';
+                    row.appendChild(cell);
+                }
+                board.appendChild(row);
+            }
+
+            boardElement.appendChild(board);
+        }
+
+        // Função para atualizar o nome do jogador
+        function updatePlayerName(playerElement, playerName) {
+            playerElement.textContent = playerName;
+        }
+
+        // Conexão com o servidor WebSocket
+        const socket = new WebSocket('ws://localhost:8080');
+
+        socket.onopen = function () {
+            console.log('Conexão WebSocket estabelecida');
+        };
+
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'game_started') {
+                // O jogo começou, atualize o tabuleiro e o nome do jogador
+                createBoard(player1BoardElement);
+                createBoard(player2BoardElement);
+                updatePlayerName(player1NameElement, 'Jogador 1');
+                updatePlayerName(player2NameElement, 'Jogador 2');
+            }
+        };
+
+        socket.onerror = function (error) {
+            console.error('Erro na conexão WebSocket:', error);
+        };
+    </script>
+</body>
+
+</html>

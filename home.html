@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naval War Chat</title>
+    <style>
+        #chatContainer {
+            display: flex;
+        }
+        #userList {
+            flex: 1;
+            border: 1px solid black;
+            margin-right: 10px;
+            padding: 10px;
+        }
+        #chat {
+            flex: 3;
+            border: 1px solid black;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Naval War Chat</h1>
+    
+    <div id="chatContainer">
+        <div id="userList">
+            <h2>Usuários Ativos</h2>
+            <ul id="userListItems"></ul>
+        </div>
+        <div id="chat">
+            <!-- Chat messages will be displayed here -->
+        </div>
+    </div>
+
+    <input type="text" id="messageInput" placeholder="Digite uma mensagem...">
+    <button onclick="sendMessage()">Enviar</button>
+
+    <script>
+        const chatElement = document.getElementById('chat');
+        const userListItemsElement = document.getElementById('userListItems');
+        const messageInputElement = document.getElementById('messageInput');
+
+        // Listening to a backend endpoint
+        const socket = new WebSocket('ws://localhost:8080');
+
+        socket.onopen = function() {
+            console.log('Conexão WebSocket estabelecida');
+            // Solicitação de nome de usuário ao se conectar ao servidor
+            const username = prompt('Por favor, digite seu nome de usuário:');
+            socket.send(JSON.stringify({ type: 'set_username', username: username }));
+        };
+
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.type === 'chat_message') {
+                chatElement.innerHTML += `<div><strong>${data.username}:</strong> ${data.text}</div>`;
+                chatElement.scrollTop = chatElement.scrollHeight;
+            } else if (data.type === 'user_list') {
+                renderUserList(data.users);
+            } else if (data.type === 'invite') {
+                const username = data.inviteFrom;
+                if (confirm(`${username} te convidou para jogar. Aceitar?`)) {
+                    socket.send(JSON.stringify({ type: 'accept_invite', inviteFrom: username }));
+                } else {
+                    socket.send(JSON.stringify({ type: 'reject_invite', inviteFrom: username }));
+                }
+            } else if (data.type === 'redirect_to_game') {
+                window.location.href = 'game.html'; // Redireciona para a página dos tabuleiros
+            }
+        };
+
+        function sendMessage() {
+            const message = messageInputElement.value.trim();
+            if (message !== '') {
+                socket.send(JSON.stringify({ type: 'chat_message', text: message }));
+                messageInputElement.value = '';
+            }
+        }
+
+        function renderUserList(users) {
+            userListItemsElement.innerHTML = '';
+            users.forEach(user => {
+                const listItem = document.createElement('li');
+                listItem.textContent = user.username;
+                const inviteButton = document.createElement('button');
+                inviteButton.textContent = 'Convide';
+                inviteButton.onclick = function() {
+                    inviteUser(user.username);
+                };
+                listItem.appendChild(inviteButton);
+                userListItemsElement.appendChild(listItem);
+            });
+        }
+
+        function inviteUser(username) {
+            if (confirm(`Convidar ${username} para jogar?`)) {
+                socket.send(JSON.stringify({ type: 'invite', username }));
+            }
+        }
+
+        socket.onerror = function (error) {
+            console.error('Erro na conexão WebSocket:', error);
+        };
+    </script>
+</body>
+</html>
