@@ -1,44 +1,10 @@
-name: Deploy static content to Pages
-
-on:
-  push:
-    branches: ["master"]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
-
-jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      # Create a temporary directory and move home.html into it
-      - name: Prepare artifact
-        run: |
-          mkdir temp_dir
-          mv home.html temp_dir/home.html
-
-      # Upload the entire directory as artifact
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: pages
-          path: temp_dir
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+            - name: GitHub Kanban
+  # You may pin to the exact commit or the version.
+  with:
+    # A personal access token with access to project, read:user and repo permissions
+    token: 
+    # The URL of the project you want to clone
+    project-url: 
+    # The name of the output HTML file
+    out-html-file: home.html # optional, default is index.html
+          
