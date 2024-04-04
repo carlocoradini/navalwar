@@ -1,6 +1,0 @@
-name: GitHub Kanban - Deploy Action
-uses: Serchinastico/github-kanban-action@v0.1.2
- with:
-    token: ${{ secrets.GITHUB_TOKEN }}
-    project-url: 'https://github.com/carlocoradini/navalwar'
-    out-html-file: 'home.html'
